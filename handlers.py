@@ -5,10 +5,143 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from tasks import generate_task, generate_feedback, process_voice_task
 
+from telegram import ReplyKeyboardMarkup
+
+persistent_keyboard = ReplyKeyboardMarkup(
+    [
+        ["/help", "/task_new_topic", "/task_same_topic"]
+    ],
+    resize_keyboard=True,
+    one_time_keyboard=False
+)
+
 registered_users = {}
 audio_folder = "records"
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Обработка команды /start.
+    Регистрирует пользователя и переводит его в режим выбора нового топика,
+    автоматически вызывая функцию task_new_topic.
+    """
+    user_id = update.effective_user.id
+    if user_id not in registered_users:
+        registered_users[user_id] = {
+            "status": "registered",
+            "task_type": None,
+            "state": "choosing_topic"
+        }
+    else:
+        registered_users[user_id]["state"] = "choosing_topic"
+    await update.message.reply_text("Добро пожаловать! Выберите раздел IELTS, над которым хотите потренироваться:", reply_markup=persistent_keyboard)
+    await task_new_topic(update, context)
+
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Обработка команды /help.
+    Отправляет описание всех команд.
+    """
+    help_text = (
+        "Доступные команды:\n"
+        "/start - Регистрация пользователя и выбор нового топика задания.\n"
+        "/help - Помогу с ботом.\n"
+        "/task_new_topic - Выбрать новый топик и получить задание.\n"
+        "Вы можете выбирать топик как с помощью кнопок, так и отправить его с клавиатуры "
+        "(доступные варианты: listening, speaking, reading, writing).\n"
+        "/task_same_topic - Получить задание по предыдущему выбранному топику.\n"
+    )
+    await update.message.reply_text(help_text, reply_markup=persistent_keyboard)
+
+async def task_new_topic(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Функция для выбора нового топика задания.
+    Отправляет сообщение с кнопками для выбора, а также предлагает ввести название топика.
+    """
+    user_id = update.effective_user.id
+    if user_id not in registered_users:
+        await update.message.reply_text("Сначала введите /start для начала работы.", reply_markup=persistent_keyboard)
+        return
+    registered_users[user_id]["state"] = "choosing_topic"
+    keyboard = [
+        [InlineKeyboardButton("Listening", callback_data="listening")],
+        [InlineKeyboardButton("Speaking", callback_data="speaking")],
+        [InlineKeyboardButton("Reading", callback_data="reading")],
+        [InlineKeyboardButton("Writing", callback_data="writing")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text(
+        "Выберите топик для нового задания или напишите его с клавиатуры (listening, speaking, reading, writing):",
+        reply_markup=reply_markup,
+    )
+
+async def task_new_topic_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Обработка нажатий кнопок.
+    Сохраняет выбор пользователя и генерирует задание.
+    """
+    query = update.callback_query
+    await query.answer()
+    task_type = query.data
+    user_id = query.from_user.id
+    if user_id not in registered_users:
+        registered_users[user_id] = {"status": "registered"}
+
+    registered_users[user_id]["task_type"] = task_type
+    await query.edit_message_text(text=f"Вы выбрали: {task_type.capitalize()}. Пожалуйста, подождите, генерируется задание...")
+
+    registered_users[user_id]["state"] = "task_in_progress"
+    task_content = generate_task(task_type)
+    chat_id = query.message.chat_id
+
+    if task_type == "listening":
+        await context.bot.send_message(chat_id=chat_id, text=task_content.get("text", ""))
+        audio_file = task_content.get("audio_file")
+        if audio_file and os.path.exists(audio_file):
+            try:
+                await context.bot.send_audio(chat_id=chat_id, audio=open(audio_file, 'rb'))
+            except Exception as e:
+                logging.error(f"Ошибка при отправке аудио Listening: {e}")
+        else:
+            await context.bot.send_message(chat_id=chat_id, text="Ошибка: аудиофайл не найден.")
+    elif task_type == "speaking":
+        await context.bot.send_message(chat_id=chat_id, text=task_content.get("text", ""), reply_markup=persistent_keyboard)
+    elif task_type == "reading":
+        await context.bot.send_message(chat_id=chat_id, text=task_content.get("text", ""), reply_markup=persistent_keyboard)
+    elif task_type == "writing":
+        await context.bot.send_message(chat_id=chat_id, text=task_content.get("text", ""), reply_markup=persistent_keyboard)
+    else:
+        await context.bot.send_message(chat_id=chat_id, text="Неизвестный тип задания.", reply_markup=persistent_keyboard)
+
+
+async def task_same_topic(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Функция для генерации задания по предыдущему выбранному топику.
+    Если топик не выбран, предлагает выбрать новый.
+    """
+    user_id = update.effective_user.id
+    user_data = registered_users.get(user_id)
+    if not user_data or not user_data.get("task_type"):
+        await update.message.reply_text("Топик не выбран. Пожалуйста, используйте /task_new_topic для выбора нового топика.")
+        return
+    topic = user_data.get("task_type")
+    await update.message.reply_text(f"Генерируется задание для топика: {topic.capitalize()}. Пожалуйста, подождите...", reply_markup=persistent_keyboard)
+    task_content = generate_task(topic)
+    chat_id = update.message.chat_id
+    if topic == "listening":
+        await context.bot.send_message(chat_id=chat_id, text=task_content.get("text", ""))
+        audio_file = task_content.get("audio_file")
+        if audio_file and os.path.exists(audio_file):
+            try:
+                await context.bot.send_audio(chat_id=chat_id, audio=open(audio_file, 'rb'))
+            except Exception as e:
+                logging.error(f"Ошибка при отправке аудио Listening: {e}")
+        else:
+            await context.bot.send_message(chat_id=chat_id, text="Ошибка: аудиофайл не найден.", reply_markup=persistent_keyboard)
+    else:
+        await context.bot.send_message(chat_id=chat_id, text=task_content.get("text", ""), reply_markup=persistent_keyboard)
+    registered_users[user_id]["state"] = "task_in_progress"
+
+async def start_(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Обработка команды /start.
     Регистрирует пользователя и предлагает выбрать раздел IELTS.
@@ -34,62 +167,49 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=reply_markup
     )
 
-async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Обработка нажатий кнопок.
-    Сохраняет выбор пользователя и генерирует задание.
-    """
-    query = update.callback_query
-    await query.answer()
-    task_type = query.data
-    user_id = query.from_user.id
-    if user_id not in registered_users:
-        registered_users[user_id] = {"status": "registered"}
-
-    registered_users[user_id]["task_type"] = task_type
-    await query.edit_message_text(text=f"Вы выбрали: {task_type.capitalize()}. Пожалуйста, подождите, генерируется задание...")
-
-    task_content = generate_task(task_type)
-    chat_id = query.message.chat_id
-
-    if task_type == "listening":
-        await context.bot.send_message(chat_id=chat_id, text=task_content.get("text", ""))
-        audio_file = task_content.get("audio_file")
-        if audio_file and os.path.exists(audio_file):
-            try:
-                await context.bot.send_audio(chat_id=chat_id, audio=open(audio_file, 'rb'))
-            except Exception as e:
-                logging.error(f"Ошибка при отправке аудио Listening: {e}")
-        else:
-            await context.bot.send_message(chat_id=chat_id, text="Ошибка: аудиофайл не найден.")
-    elif task_type == "speaking":
-        await context.bot.send_message(chat_id=chat_id, text=task_content.get("text", ""))
-    elif task_type == "reading":
-        await context.bot.send_message(chat_id=chat_id, text=task_content.get("text", ""))
-    elif task_type == "writing":
-        await context.bot.send_message(chat_id=chat_id, text=task_content.get("text", ""))
-    else:
-        await context.bot.send_message(chat_id=chat_id, text="Неизвестный тип задания.")
-
-
 async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Обработка текстовых сообщений.
-    Предназначено для получения ответов по заданиям Reading и Writing.
+    Если пользователь находится в режиме выбора топика, то его ввод интерпретируется как выбор нового топика.
+    Иначе, если задание относится к Reading/Writing, обрабатывается как ответ на задание.
     """
     user_id = update.effective_user.id
     user_data = registered_users.get(user_id)
     if not user_data:
-        await update.message.reply_text("Пожалуйста, начните с команды /start для регистрации.")
+        await update.message.reply_text("Пожалуйста, начните с команды /start для регистрации.", reply_markup=persistent_keyboard)
         return
 
-    task_type = user_data.get("task_type")
-    if task_type in ["reading", "writing"]:
-        user_answer = update.message.text
-        feedback = generate_feedback(task_type, user_answer)
-        await update.message.reply_text(feedback)
+    if user_data.get("state") == "choosing_topic":
+        topic = update.message.text.lower().strip()
+        if topic in ["listening", "speaking", "reading", "writing"]:
+            registered_users[user_id]["task_type"] = topic
+            registered_users[user_id]["state"] = "task_in_progress"
+            await update.message.reply_text(f"Топик '{topic.capitalize()}' выбран. Генерируется задание, пожалуйста, подождите...", reply_markup=persistent_keyboard)
+            task_content = generate_task(topic)
+            chat_id = update.message.chat_id
+            if topic == "listening":
+                await context.bot.send_message(chat_id=chat_id, text=task_content.get("text", ""), reply_markup=persistent_keyboard)
+                audio_file = task_content.get("audio_file")
+                if audio_file and os.path.exists(audio_file):
+                    try:
+                        await context.bot.send_audio(chat_id=chat_id, audio=open(audio_file, 'rb'))
+                    except Exception as e:
+                        logging.error(f"Ошибка при отправке аудио Listening: {e}")
+                else:
+                    await context.bot.send_message(chat_id=chat_id, text="Ошибка: аудиофайл не найден.", reply_markup=persistent_keyboard)
+            else:
+                await context.bot.send_message(chat_id=chat_id, text=task_content.get("text", ""), reply_markup=persistent_keyboard)
+        else:
+            await update.message.reply_text("Некорректный выбор топика. Пожалуйста, введите один из: listening, speaking, reading, writing.", reply_markup=persistent_keyboard)
     else:
-        await update.message.reply_text("Пожалуйста, отправьте голосовое сообщение для speaking задания.")
+        task_type = user_data.get("task_type")
+        if task_type in ["reading", "writing, listening"]:
+            user_answer = update.message.text
+            feedback = generate_feedback(task_type, user_answer)
+            await update.message.reply_text(feedback, reply_markup=persistent_keyboard)
+        else:
+            await update.message.reply_text("Пожалуйста, отправьте голосовое сообщение для speaking задания.", reply_markup=persistent_keyboard)
+
 
 async def voice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
@@ -99,12 +219,12 @@ async def voice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     user_data = registered_users.get(user_id)
     if not user_data:
-        await update.message.reply_text("Пожалуйста, начните с команды /start для регистрации.")
+        await update.message.reply_text("Пожалуйста, начните с команды /start для регистрации.", reply_markup=persistent_keyboard)
         return
 
     task_type = user_data.get("task_type")
     if task_type != "speaking":
-        await update.message.reply_text("Пожалуйста, отправьте текстовое сообщение для данного задания.")
+        await update.message.reply_text("Пожалуйста, отправьте текстовое сообщение для данного задания.", reply_markup=persistent_keyboard)
         return
 
     voice = update.message.voice
@@ -116,7 +236,7 @@ async def voice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     feedback = generate_feedback(task_type, transcription)
     await update.message.reply_text(
         f"Транскрипция: {transcription}\n\nОбратная связь:\n{feedback}"
-    )
+    , reply_markup=persistent_keyboard)
 
     # if os.path.exists(file_path):
     #     os.remove(file_path)

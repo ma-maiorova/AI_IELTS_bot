@@ -6,7 +6,7 @@ import torch
 from config import KEY_YANDEX_GPT, FOLDER_YANDEX_GPT
 import soundfile as sf
 from transformers import pipeline
-from test_recognize import synthesize_speech, recognize_speech
+from recognize import synthesize_speech, recognize_speech
 
 from yandex_cloud_ml_sdk import YCloudML
 
@@ -14,7 +14,7 @@ sdk = YCloudML(
     folder_id=FOLDER_YANDEX_GPT, auth=KEY_YANDEX_GPT
 )
 
-base_model = sdk.models.completions("yandexgpt-lite", model_version="rc")
+base_model = sdk.models.completions("yandexgpt-lite")
 
 from promts import reading_promt, speaking_promt, listening_promt, writing_promt
 
@@ -55,7 +55,7 @@ def generate_task(task_type):
 
     if task_type == "listening":
 
-        output_audio = os.path.join(audio_folder, f"synthesized_speech_{os.getpid()}.oggopus")
+        output_audio = os.path.join(audio_folder, f"synthesized_speech_{os.getpid()}.ogg")
 
         # open(output_audio, 'wb').close()
         #
@@ -86,7 +86,7 @@ def generate_feedback(task_type, user_answer):
         f"Пользователь выполнил задание по разделу {task_type.capitalize()} IELTS.\n"
         f"Вот его ответ:\n\n{user_answer}\n\n"
         "Проанализируй ответ, укажи основные ошибки, предоставь исправления и рекомендации."
-        "Структурируй ответ в виде списка (Ошибки -> Исправления -> Советы)."
+        "Структурируй ответ в виде списка (Ошибки -> Исправления -> Советы -> Ответы на задания)."
     )
 
     result = model.run([
