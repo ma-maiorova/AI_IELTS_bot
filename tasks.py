@@ -16,28 +16,28 @@ sdk = YCloudML(
 
 base_model = sdk.models.completions("yandexgpt-lite")
 
-from promts import reading_promt, speaking_promt, listening_promt, writing_promt
+from prompts import reading_prompt, speaking_prompt, listening_prompt, writing_prompt
 
 audio_folder = "synthesized"
 
 
-def generate_task(task_type):
+def generate_task(task_type, prompt = '', part = 0):
     """
     Генерирует задание для выбранного раздела IELTS с помощью моделей Hugging Face.
     Для Listening возвращает словарь с ключами 'text' и 'audio_file'.
     Для остальных разделов возвращает текст задания.
     """
-    prompt = ""
-    if task_type == "listening":
-        prompt = listening_promt
-    elif task_type == "speaking":
-        prompt = speaking_promt
-    elif task_type == "reading":
-        prompt = reading_promt
-    elif task_type == "writing":
-        prompt = writing_promt
-    else:
-        return {"text": "Неизвестный тип задания."}
+    if prompt == '':
+        if task_type == "listening":
+            prompt = listening_prompt
+        elif task_type == "speaking":
+            prompt = speaking_prompt
+        elif task_type == "reading":
+            prompt = reading_prompt
+        elif task_type == "writing":
+            prompt = writing_prompt
+        else:
+            return {"text": "Неизвестный тип задания."}
 
     temperature_value = round(random.uniform(0.5, 0.9), 2)
     model = base_model.configure(temperature=temperature_value)
@@ -55,7 +55,7 @@ def generate_task(task_type):
 
     if task_type == "listening":
 
-        output_audio = os.path.join(audio_folder, f"synthesized_speech_{os.getpid()}.ogg")
+        output_audio = os.path.join(audio_folder, f"synthesized_speech_{os.getpid()}_part{part + 1}")
 
         # open(output_audio, 'wb').close()
         #

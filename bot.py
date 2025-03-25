@@ -6,8 +6,9 @@ from telegram.ext import (
     MessageHandler,
     filters
 )
-from handlers import start, task_new_topic_button_handler, text_handler, voice_handler, error_handler, help_command, task_new_topic, \
-    task_same_topic
+from handlers import start, task_new_topic_button_handler, text_handler, voice_handler, error_handler, help_command, \
+    task_new_topic, \
+    task_same_topic, send_next_part, next_part_of_task
 
 from config import TELEGRAM_BOT_TOKEN
 
@@ -22,6 +23,7 @@ def main():
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("task_new_topic", task_new_topic))
     application.add_handler(CommandHandler("task_same_topic", task_same_topic))
+    application.add_handler(CommandHandler("next_part_of_task", next_part_of_task))
     application.add_handler(CallbackQueryHandler(task_new_topic_button_handler))
 
     # Обработчики текстовых сообщений и голосовых сообщений
