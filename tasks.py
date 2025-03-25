@@ -7,6 +7,7 @@ from config import KEY_YANDEX_GPT, FOLDER_YANDEX_GPT
 import soundfile as sf
 from transformers import pipeline
 from recognize import synthesize_speech, recognize_speech
+from feedback_prompt import get_prompt_feedback
 
 from yandex_cloud_ml_sdk import YCloudML
 
@@ -14,7 +15,7 @@ sdk = YCloudML(
     folder_id=FOLDER_YANDEX_GPT, auth=KEY_YANDEX_GPT
 )
 
-base_model = sdk.models.completions("yandexgpt-lite")
+base_model = sdk.models.completions("yandexgpt", model_version="rc")
 
 from prompts import reading_prompt, speaking_prompt, listening_prompt, writing_prompt
 
@@ -27,24 +28,13 @@ def generate_task(task_type, prompt = '', part = 0):
     Для Listening возвращает словарь с ключами 'text' и 'audio_file'.
     Для остальных разделов возвращает текст задания.
     """
-    if prompt == '':
-        if task_type == "listening":
-            prompt = listening_prompt
-        elif task_type == "speaking":
-            prompt = speaking_prompt
-        elif task_type == "reading":
-            prompt = reading_prompt
-        elif task_type == "writing":
-            prompt = writing_prompt
-        else:
-            return {"text": "Неизвестный тип задания."}
 
     temperature_value = round(random.uniform(0.5, 0.9), 2)
     model = base_model.configure(temperature=temperature_value)
 
     result = model.run(
         [
-            {"role": "system", "text": "Инструкции: генерируй задания для IELTS."},
+            {"role": "system", "text": "Генерируй текст по промту"},
             {"role": "user", "text": prompt},
         ]
     )
@@ -73,7 +63,7 @@ def generate_task(task_type, prompt = '', part = 0):
         return {"text": task_text}
 
 
-def generate_feedback(task_type, user_answer):
+def generate_feedback(task_type, user_answer, user_id):
     """
     Генерирует обратную связь по ответу пользователя.
     Анализирует ошибки, предлагает исправления и советы по улучшению.
@@ -82,12 +72,7 @@ def generate_feedback(task_type, user_answer):
     temperature_value = round(random.uniform(0.5, 0.9), 2)
     model = base_model.configure(temperature=temperature_value)
 
-    prompt = (
-        f"Пользователь выполнил задание по разделу {task_type.capitalize()} IELTS.\n"
-        f"Вот его ответ:\n\n{user_answer}\n\n"
-        "Проанализируй ответ, укажи основные ошибки, предоставь исправления и рекомендации."
-        "Структурируй ответ в виде списка (Ошибки -> Исправления -> Советы -> Ответы на задания)."
-    )
+    prompt = get_prompt_feedback(task_type, user_answer, user_id)
 
     result = model.run([
         {"role": "system", "text": "Инструкции: анализируй ответ студента по выбранному заданию."},

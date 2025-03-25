@@ -4,7 +4,8 @@ import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 
-from task_parts.listening_part import get_listening_tasks, listening_prompt_part
+from data import registered_users
+from task_parts.listening_part import get_listening_tasks, listening_prompt_part, listening_prompt_part_questions
 from task_parts.reading_part import reading_prompt_part, get_reading_task
 from task_parts.speaking_part import get_speaking_tasks, speaking_prompt_part
 from task_parts.writing_part import get_writing_tasks, writing_prompt_part
@@ -20,7 +21,6 @@ persistent_keyboard = ReplyKeyboardMarkup(
     one_time_keyboard=False
 )
 
-registered_users = {}
 audio_folder = "records"
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -36,6 +36,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "task_type": None,
             "state": "choosing_topic",
             "current_part": 0,
+            "current_task": None,
         }
     else:
         registered_users[user_id]["state"] = "choosing_topic"
@@ -172,6 +173,11 @@ async def send_next_part(update_or_query, context: ContextTypes.DEFAULT_TYPE, ta
             task_content = generate_task(task_type, prompt, current_part)
             audio_file = task_content.get("audio_file")
 
+            prompt_questions = listening_prompt_part_questions + task_content.get("text")
+            questions_content = generate_task('questions', prompt_questions, current_part)
+
+            registered_users["current_task"] = task_content.get("text", "") + questions_content.get("text", "")
+
             await context.bot.send_message(chat_id=chat_id, text=part_data["title"])
             await context.bot.send_message(chat_id=chat_id, text=part_data["description"])
             await context.bot.send_message(chat_id=chat_id, text=part_data["instruction"])
@@ -180,12 +186,14 @@ async def send_next_part(update_or_query, context: ContextTypes.DEFAULT_TYPE, ta
                 try:
                     await context.bot.send_audio(chat_id=chat_id, audio=open(audio_file, 'rb'))
                     await context.bot.send_message(chat_id=chat_id, text=task_content.get("text", ""))
+                    await context.bot.send_message(chat_id=chat_id, text="Questions\n" + questions_content.get("text", ""))
                 except Exception as e:
                     print(audio_file)
                     logging.error(f"Ошибка отправки аудио для Listening part {current_part+1}: {e}")
                     await context.bot.send_message(chat_id=chat_id, text="Ошибка при отправке аудио.", reply_markup=persistent_keyboard)
             else:
                 await context.bot.send_message(chat_id=chat_id, text="(Аудиофайл не найден или отсутствует.)", reply_markup=persistent_keyboard)
+
 
             user_data["current_part"] += 1
         else:
@@ -200,6 +208,7 @@ async def send_next_part(update_or_query, context: ContextTypes.DEFAULT_TYPE, ta
 
             prompt = reading_prompt_part + f" title : {part_data['title']} , description: {part_data['description']}"
             task_content = generate_task(task_type, prompt)
+            registered_users["current_task"] = task_content.get("text", "")
 
             await context.bot.send_message(chat_id=chat_id, text=part_data["title"])
             await context.bot.send_message(chat_id=chat_id, text=part_data["description"])
@@ -219,6 +228,7 @@ async def send_next_part(update_or_query, context: ContextTypes.DEFAULT_TYPE, ta
 
             prompt = speaking_prompt_part + f" title : {part_data['title']} , description: {part_data['description']}"
             task_content = generate_task(task_type, prompt, current_part)
+            registered_users["current_task"] = task_content.get("text", "")
 
             await context.bot.send_message(chat_id=chat_id, text=f"Speaking Part {part_data['part']}")
             await context.bot.send_message(chat_id=chat_id, text=part_data["description"])
@@ -238,7 +248,7 @@ async def send_next_part(update_or_query, context: ContextTypes.DEFAULT_TYPE, ta
 
             prompt = writing_prompt_part + f" title : {part_data['title']} , description: {part_data['description']}"
             task_content = generate_task(task_type, prompt, current_part)
-
+            registered_users["current_task"] = task_content.get("text", "")
 
             await context.bot.send_message(chat_id=chat_id, text=part_data["title"])
             await context.bot.send_message(chat_id=chat_id, text=part_data["description"])
@@ -292,7 +302,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         print(task_type)
         if task_type in ["reading", "writing", "listening"]:
             user_answer = update.message.text
-            feedback = generate_feedback(task_type, user_answer)
+            feedback = generate_feedback(task_type, user_answer, user_id)
             await update.message.reply_text(feedback, reply_markup=persistent_keyboard)
         else:
             await update.message.reply_text("Пожалуйста, отправьте голосовое сообщение для speaking задания.", reply_markup=persistent_keyboard)
@@ -322,10 +332,10 @@ async def voice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     file_path = os.path.join(audio_folder, f"voice_{voice.file_id}.ogg")
     await file.download_to_drive(custom_path=file_path)
 
-    transcription = process_voice_task(file_path)
-    feedback = generate_feedback(task_type, transcription)
+    user_answer = process_voice_task(file_path)
+    feedback = generate_feedback(task_type, user_answer, user_id)
     await update.message.reply_text(
-        f"Транскрипция: {transcription}\n\nОбратная связь:\n{feedback}"
+        f"Транскрипция: {user_answer}\n\nОбратная связь:\n{feedback}"
     , reply_markup=persistent_keyboard)
 
     # if os.path.exists(file_path):

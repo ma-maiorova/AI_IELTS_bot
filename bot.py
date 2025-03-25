@@ -8,7 +8,7 @@ from telegram.ext import (
 )
 from handlers import start, task_new_topic_button_handler, text_handler, voice_handler, error_handler, help_command, \
     task_new_topic, \
-    task_same_topic, send_next_part, next_part_of_task
+    task_same_topic, next_part_of_task
 
 from config import TELEGRAM_BOT_TOKEN
 
