@@ -25,7 +25,7 @@ audio_folder = "synthesized"
 def generate_task(task_type, prompt='', part=0):
     """
     Генерирует задание для выбранного раздела IELTS с помощью моделей Hugging Face.
-    Для Listening возвращает словарь с ключами 'text' и 'audio_file'.
+    Для Listening возвращает словарь с ключами 'textи 'audio_file'.
     Для остальных разделов возвращает текст задания.
     """
 

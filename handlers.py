@@ -43,9 +43,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         registered_users[user_id]["state"] = "choosing_topic"
         registered_users[user_id]["current_part"] = 0
-    await update.message.reply_text("Добро пожаловать! "
-                                    "Этот бот поможет Вам подготовиться к IELTS экзамену по английскому языку"
-                                    "Он будет присылать Вам задания для подготовки, а в ответ будет ждать от Вас ответы, после которых будет давать фидбек"
+    await update.message.reply_text("Добро пожаловать!\n"
+                                    "Этот бот поможет Вам подготовиться к IELTS экзамену по английскому языку\n"
+                                    "Он будет присылать Вам задания для подготовки, а в ответ будет ждать от Вас ответы, после которых будет давать фидбек\n"
                                     "Выберите раздел IELTS, над которым хотите потренироваться:",
                                     reply_markup=persistent_keyboard)
     await task_new_topic(update, context)
@@ -351,7 +351,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if user_data["current_part"] < registered_users[user_id]["current_part_len"]:
                 inline_keyboard = InlineKeyboardMarkup(
                     [[InlineKeyboardButton("Следующая часть задания из топика", callback_data="next_part")]])
-                await update.message.reply_text(text="Нажмите 'Next Part' для продолжения.",
+                await update.message.reply_text(text="",
                                                 reply_markup=inline_keyboard)
             else:
                 inline_keyboard = InlineKeyboardMarkup(
@@ -408,7 +408,7 @@ async def voice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if user_data["current_part"] < registered_users[user_id]["current_part_len"]:
         inline_keyboard = InlineKeyboardMarkup(
             [[InlineKeyboardButton("Следующая часть задания из топика", callback_data="next_part")]])
-        await update.message.reply_text(text="Нажмите 'Next Part' для продолжения.",
+        await update.message.reply_text(text="",
                                         reply_markup=inline_keyboard)
     else:
         inline_keyboard = InlineKeyboardMarkup(

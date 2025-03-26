@@ -4,6 +4,7 @@ import time
 
 import requests
 from config import KEY_YANDEX_SPEECHKIT, FOLDER_YANDEX_GPT
+from whisper import WhisperModel
 
 
 def synthesize_speech(text, output_file, lang="en-US",
@@ -43,6 +44,23 @@ def synthesize_speech(text, output_file, lang="en-US",
 
 
 def recognize_speech(input_file, lang="en-US"):
+    """
+    Распознавание речи через локальный whisper.
+
+    Аргументы:
+      input_file: путь к аудиофайлу для распознавания.
+      lang: язык распознавания (например, "ru-RU").
+
+    Возвращает:
+      Строку с распознанным текстом или пустую строку в случае ошибки.
+    """
+    filepath = input_file
+    model = WhisperModel("english")
+    full_text = model.launch(filepath)[0]['text']
+    return full_text
+
+
+def recognize_speech_SpeechKit(input_file, lang="en-US"):
     """
     Распознавание речи через Yandex SpeechKit (ASR, v3).
 
