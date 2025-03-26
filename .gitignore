@@ -1,0 +1,8 @@
+extra/
+records/
+synthesized/
+config.py
+prompts.py
+test_listening_prompt.py
+__pycache__/
+ task_parts/__pycache__/

@@ -5,6 +5,7 @@ import time
 import requests
 from config import KEY_YANDEX_SPEECHKIT, FOLDER_YANDEX_GPT
 
+
 def synthesize_speech(text, output_file, lang="en-US",
                       voice="john", speed=1.0, audio_format="oggopus"):
     """
@@ -132,8 +133,6 @@ def recognize_speech(input_file, lang="en-US"):
 
     full_text = " ".join(recognized_chunks)
     return full_text
-
-
 
 
 if __name__ == "__main__":

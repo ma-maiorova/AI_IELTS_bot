@@ -22,7 +22,7 @@ from prompts import reading_prompt, speaking_prompt, listening_prompt, writing_p
 audio_folder = "synthesized"
 
 
-def generate_task(task_type, prompt = '', part = 0):
+def generate_task(task_type, prompt='', part=0):
     """
     Генерирует задание для выбранного раздела IELTS с помощью моделей Hugging Face.
     Для Listening возвращает словарь с ключами 'text' и 'audio_file'.
@@ -41,7 +41,6 @@ def generate_task(task_type, prompt = '', part = 0):
 
     task_text = result[0].text
     print(task_text)
-
 
     if task_type == "listening":
 

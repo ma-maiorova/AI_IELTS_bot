@@ -1,8 +1,9 @@
 from data import registered_users
 
+
 def get_prompt_feedback(task_type, user_answer, user_id):
     if (task_type == "writing"):
-        return  f"""Ты выступаешь в роли эксперта по IELTS в разделе Writing.
+        return f"""Ты выступаешь в роли эксперта по IELTS в разделе Writing.
             Задание: {registered_users[user_id]["current_task"]}
             Тип задания: {task_type.capitalize()}
             Ответ пользователя:
@@ -19,7 +20,6 @@ def get_prompt_feedback(task_type, user_answer, user_id):
             Проведи детальный разбор, укажи сильные стороны ответа, выяви ошибки и предложи конкретные рекомендации по улучшению.
             """
     if (task_type == "speaking"):
-
         return f"""Ты выступаешь в роли эксперта по IELTS в разделе Speaking.
             Задание: {registered_users[user_id]["current_task"]}
             Тип задания: {task_type.capitalize()}
@@ -55,6 +55,7 @@ def get_prompt_feedback(task_type, user_answer, user_id):
             """
 
     if (task_type == "listening"):
+        print("!!!!!!!!!!!!!!!!!!!!!!!!\n", registered_users[user_id]["current_task"])
         return f"""Ты выступаешь в роли эксперта по IELTS в разделе Listening.
             Задание: {registered_users[user_id]["current_task"]}
             Тип задания: {task_type.capitalize()}

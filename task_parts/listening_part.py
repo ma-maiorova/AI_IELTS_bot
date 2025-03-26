@@ -1,15 +1,36 @@
 listening_prompt_part = """
-Мне нужно задание для секции Listening в IELTS. Пожалуйста, создай задание, которое включает 
-текст , написанный согласно формату IELTS Listening. (300-400 слов) по заданному title, БЕЗ ВОПРОСОВ, только сам текст
+You are an expert in generating IELTS Listening tasks. Please create a listening passage based on the provided title with the following specifications:
 
-ВАЖНО: Пожалуйста, предоставь итоговый вариант задания исключительно на английском языке, без использования русского.
+**Task Requirements:**
+1. Generate a listening passage in English following IELTS Listening standards (300-400 words).
+2. Structure the passage with clear sections and headings formatted using Markdown (e.g., **Title**, **Section**, etc.) for Telegram.
+3. Do not include any questions in this output; only provide the listening passage text.
+
+**Input:**
+Title: {title}
+
+**Output:**
+Provide the final listening passage as specified.
 """
 
-listening_prompt_part_questions = ("Напиши 9 вопросов к тексту, данному ниже, разделённых на разные типы: "
-                                   "вопросы с множественным выбором, задания на заполнение пропусков и "
-                                   "вопросы с коротким ответом. "
-                                   "вопросы должны быть на английском языке, без ответов"
-                                   "Вопросы должны быть по тексту:")
+listening_prompt_part_questions = """
+You are an expert in creating IELTS Listening questions. Based on the provided listening passage, generate exactly 9 questions in English covering different types, including:
+
+- Multiple Choice Questions
+- Fill-in-the-Blanks
+- Short Answer Questions
+
+**Requirements:**
+1. Number the questions clearly.
+2. Format the output using Markdown for Telegram.
+3. Ensure that each question directly relates to the provided listening passage.
+
+**Input Text:**
+{text}
+
+**Output:**
+Provide the 9 questions in a clear, structured format.
+"""
 
 
 def get_listening_tasks():
@@ -56,10 +77,12 @@ def get_listening_tasks():
         },
     ]
 
+
 def get_listening_part(part_index):
     if 0 <= part_index < len(get_listening_tasks()):
         return get_listening_tasks()[part_index]
     return None
+
 
 def total_listening_parts():
     return len(get_listening_tasks())

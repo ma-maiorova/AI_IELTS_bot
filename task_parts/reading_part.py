@@ -1,10 +1,26 @@
 reading_prompt_part = """
-Мне нужно задание для секции Reading в IELTS. Пожалуйста, создай задание, которое включает:
-1. Краткое описание темы или ситуации, отражённой в тексте.
-2. Сам текст для чтения, написанный согласно формату IELTS Reading. (250-300 слов)
-3. Набор вопросов к тексту, разделённых на разные типы: multiple choice, short answer, fill-in-the-blanks.
+You are an expert in creating IELTS Reading tasks.
+Please generate a complete IELTS Reading assignment using the following guidelines:
 
-ВАЖНО: Пожалуйста, предоставь итоговый вариант задания исключительно на английском языке, без использования русского.
+**Assignment Structure:**
+1. **Title:** Provide a concise title for the assignment.
+2. **Overview:** Offer a brief description of the theme or situation depicted in the text (1-2 sentences).
+3. **Passage:** Create a reading passage written according to IELTS Reading standards, consisting of 350-400 words.
+4. **Questions:** Generate 18 questions based on the passage, covering the following types:
+   - **Multiple Choice**
+   - **Short Answer**
+   - **Fill-in-the-Blanks**
+
+**Formatting Requirements:**
+- Use Markdown formatting (with clear headings and bullet points) suitable for Telegram.
+- The entire output must be entirely in English; do not use any Russian.
+
+**Input Provided:**
+Title: {title}
+Description: {description}
+
+**Output:**
+Provide the full IELTS Reading assignment as described above.
 """
 
 def get_reading_task():
