@@ -43,7 +43,7 @@ def synthesize_speech(text, output_file, lang="en-US",
     print(f"Синтезированный файл сохранён: {output_file}")
 
 
-def recognize_speech(input_file, lang="en-US"):
+def recognize_speech_Whisper(input_file, lang="en-US"):
     """
     Распознавание речи через локальный whisper.
 
@@ -143,7 +143,6 @@ def recognize_speech_SpeechKit(input_file, lang="en-US"):
                     # print("[FINAL]", final_text)
                     recognized_chunks.append(final_text)
                     find = True
-                    break
 
             if "statusCode" in result_data and result_data["statusCode"].get("codeType") == "CLOSED":
                 find = True
@@ -151,6 +150,11 @@ def recognize_speech_SpeechKit(input_file, lang="en-US"):
 
     full_text = " ".join(recognized_chunks)
     return full_text
+
+
+def recognize_speech(input_file, lang="en-US"):
+    return recognize_speech_SpeechKit(input_file, lang="en-US")
+    # return recognize_speech_Whisper(input_file, lang="en-US")
 
 
 if __name__ == "__main__":
