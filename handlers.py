@@ -43,7 +43,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         registered_users[user_id]["state"] = "choosing_topic"
         registered_users[user_id]["current_part"] = 0
-    await update.message.reply_text("Добро пожаловать! Выберите раздел IELTS, над которым хотите потренироваться:",
+    await update.message.reply_text("Добро пожаловать! "
+                                    "Этот бот поможет Вам подготовиться к IELTS экзамену по английскому языку"
+                                    "Он будет присылать Вам задания для подготовки, а в ответ будет ждать от Вас ответы, после которых будет давать фидбек"
+                                    "Выберите раздел IELTS, над которым хотите потренироваться:",
                                     reply_markup=persistent_keyboard)
     await task_new_topic(update, context)
 
@@ -205,12 +208,13 @@ async def send_next_part(update_or_query, context: ContextTypes.DEFAULT_TYPE, ta
 
             registered_users[user_id]["current_task"] = task_content.get("text", "") + questions_content.get("text", "")
 
-            await context.bot.send_message(chat_id=chat_id, text=part_data["title"])
-            await context.bot.send_message(chat_id=chat_id, text=part_data["description"])
-            await context.bot.send_message(chat_id=chat_id, text=part_data["instruction"])
-
             if audio_file and os.path.exists(audio_file):
                 try:
+
+                    await context.bot.send_message(chat_id=chat_id, text=part_data["title"])
+                    await context.bot.send_message(chat_id=chat_id, text=part_data["description"])
+                    await context.bot.send_message(chat_id=chat_id, text=part_data["instruction"])
+
                     await context.bot.send_audio(chat_id=chat_id, audio=open(audio_file, 'rb'))
                     await context.bot.send_message(chat_id=chat_id, text=task_content.get("text", ""),
                                                    parse_mode='Markdown')

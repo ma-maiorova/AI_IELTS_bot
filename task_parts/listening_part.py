@@ -24,6 +24,7 @@ You are an expert in creating IELTS Listening questions. Based on the provided l
 1. Number the questions clearly.
 2. Format the output using Markdown for Telegram.
 3. Ensure that each question directly relates to the provided listening passage.
+4. In the "Fill in the blanks" questions, show where to insert the word using the "_" characters.
 
 **Input Text:**
 {text}

@@ -14,6 +14,7 @@ Please generate a complete IELTS Reading assignment using the following guidelin
 **Formatting Requirements:**
 - Use Markdown formatting (with clear headings and bullet points) suitable for Telegram.
 - The entire output must be entirely in English; do not use any Russian.
+- In the "Fill in the blanks" questions, show where to insert the word using the "_" characters.
 
 **Input Provided:**
 Title: {title}
