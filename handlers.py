@@ -57,14 +57,14 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     Отправляет описание всех команд.
     """
     help_text = (
-        "Доступные команды:\n"
-        "/start - Регистрация пользователя и выбор нового топика задания.\n"
-        "/help - Помогу с ботом. Кря. \n"
-        "/task_new_topic - Выбрать новый топик и получить задание.\n"
-        "Вы можете выбирать топик как с помощью кнопок, так и отправить его с клавиатуры "
-        "(доступные варианты: listening, speaking, reading, writing).\n"
-        "/task_same_topic - Получить задание по предыдущему выбранному топику.\n"
-        "/send_next_part - Получить следующую часть задания из выбранного топика.\n"
+        'Доступные команды:\n'
+        '/start - Регистрация пользователя и выбор нового топика задания.\n'
+        '/help - Помогу с ботом. Кря. \n'
+        '/task_new_topic - Выбрать новый топик и получить задание.\n'
+        'Вы можете выбирать топик как с помощью кнопок, так и отправить его с клавиатуры '
+        '(доступные варианты: listening, speaking, reading, writing).\n'
+        '/task_same_topic - Получить задание по предыдущему выбранному топику.\n'
+        '/send_next_part - Получить следующую часть задания из выбранного топика.\n'
     )
     await update.message.reply_text(help_text, reply_markup=persistent_keyboard)
 
@@ -351,7 +351,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if user_data["current_part"] < registered_users[user_id]["current_part_len"]:
                 inline_keyboard = InlineKeyboardMarkup(
                     [[InlineKeyboardButton("Следующая часть задания из топика", callback_data="next_part")]])
-                await update.message.reply_text(text="",
+                await update.message.reply_text(text="Тык",
                                                 reply_markup=inline_keyboard)
             else:
                 inline_keyboard = InlineKeyboardMarkup(
@@ -408,7 +408,7 @@ async def voice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if user_data["current_part"] < registered_users[user_id]["current_part_len"]:
         inline_keyboard = InlineKeyboardMarkup(
             [[InlineKeyboardButton("Следующая часть задания из топика", callback_data="next_part")]])
-        await update.message.reply_text(text="",
+        await update.message.reply_text(text="Тык",
                                         reply_markup=inline_keyboard)
     else:
         inline_keyboard = InlineKeyboardMarkup(

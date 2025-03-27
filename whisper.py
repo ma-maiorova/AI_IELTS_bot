@@ -16,5 +16,6 @@ class WhisperModel:
         audio = Dataset.from_dict({"audio": [audio_path]}).cast_column("audio", Audio(sampling_rate=self.sampling_rate))
         audio = audio["audio"]
         generated_kwargs = {"task": "transcribe", "language": "english"}
-        pipe = pipeline("automatic-speech-recognition", model=self.model, tokenizer=self.processor.tokenizer, feature_extractor=self.processor.feature_extractor)
+        pipe = pipeline("automatic-speech-recognition", model=self.model, tokenizer=self.processor.tokenizer,
+                        feature_extractor=self.processor.feature_extractor)
         return pipe(audio, generate_kwargs=generated_kwargs, return_timestamps=True)

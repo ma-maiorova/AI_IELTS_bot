@@ -153,8 +153,8 @@ def recognize_speech_SpeechKit(input_file, lang="en-US"):
 
 
 def recognize_speech(input_file, lang="en-US"):
-    return recognize_speech_SpeechKit(input_file, lang="en-US")
-    # return recognize_speech_Whisper(input_file, lang="en-US")
+    # return recognize_speech_SpeechKit(input_file, lang="en-US")
+    return recognize_speech_Whisper(input_file, lang="en-US")
 
 
 if __name__ == "__main__":
