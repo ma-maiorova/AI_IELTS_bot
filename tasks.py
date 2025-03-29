@@ -1,25 +1,18 @@
 import os
 import random
 
-import torch
+from yandex_cloud_ml_sdk import YCloudML
 
 from config import KEY_YANDEX_GPT, FOLDER_YANDEX_GPT
-import soundfile as sf
-from transformers import pipeline
-from recognize import synthesize_speech, recognize_speech
+from data import audio_folder_synthesize
 from feedback_prompt import get_prompt_feedback
-
-from yandex_cloud_ml_sdk import YCloudML
+from recognize import synthesize_speech, recognize_speech
 
 sdk = YCloudML(
     folder_id=FOLDER_YANDEX_GPT, auth=KEY_YANDEX_GPT
 )
 
 base_model = sdk.models.completions("yandexgpt", model_version="rc")
-
-from prompts import reading_prompt, speaking_prompt, listening_prompt, writing_prompt
-
-audio_folder = "synthesized"
 
 
 def generate_task(task_type, prompt='', part=0):
@@ -44,12 +37,10 @@ def generate_task(task_type, prompt='', part=0):
 
     if task_type == "listening":
 
-        output_audio = os.path.join(audio_folder, f"synthesized_speech_{os.getpid()}_part{part + 1}")
+        output_audio = os.path.join(audio_folder_synthesize, f"synthesized_speech_{os.getpid()}_part{part + 1}")
 
         # open(output_audio, 'wb').close()
-        #
         # audio_output = synthesize_speech(task_text, output_audio)
-        #
         # return {"text": task_text, "audio_file": audio_output}
 
         synthesize_speech(task_text, output_audio, lang="en-US", voice="john")

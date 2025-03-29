@@ -3,6 +3,7 @@ import json
 import time
 
 import requests
+
 from config import KEY_YANDEX_SPEECHKIT, FOLDER_YANDEX_GPT
 from whisper import WhisperModel
 
@@ -43,7 +44,7 @@ def synthesize_speech(text, output_file, lang="en-US",
     print(f"Синтезированный файл сохранён: {output_file}")
 
 
-def recognize_speech_Whisper(input_file, lang="en-US"):
+def recognize_speech_whisper(input_file, lang="en-US"):
     """
     Распознавание речи через локальный whisper.
 
@@ -60,7 +61,7 @@ def recognize_speech_Whisper(input_file, lang="en-US"):
     return full_text
 
 
-def recognize_speech_SpeechKit(input_file, lang="en-US"):
+def recognize_speech_speech_kit(input_file, lang="en-US"):
     """
     Распознавание речи через Yandex SpeechKit (ASR, v3).
 
@@ -154,7 +155,7 @@ def recognize_speech_SpeechKit(input_file, lang="en-US"):
 
 def recognize_speech(input_file, lang="en-US"):
     # return recognize_speech_SpeechKit(input_file, lang="en-US")
-    return recognize_speech_Whisper(input_file, lang="en-US")
+    return recognize_speech_whisper(input_file, lang="en-US")
 
 
 if __name__ == "__main__":
