@@ -1,8 +1,10 @@
 extra/
 records/
 synthesized/
-config.py
 extra/prompts.py
 extra/test_listening_prompt.py
 __pycache__/
  task_parts/__pycache__/
+ handlers/__pycache__/
+.env
+.idea/
