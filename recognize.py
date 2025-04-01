@@ -154,7 +154,7 @@ def recognize_speech_speech_kit(input_file, lang="en-US"):
 
 
 def recognize_speech(input_file, lang="en-US"):
-    # return recognize_speech_SpeechKit(input_file, lang="en-US")
+    # return recognize_speech_speech_kit(input_file, lang="en-US")
     return recognize_speech_whisper(input_file, lang="en-US")
 
 
